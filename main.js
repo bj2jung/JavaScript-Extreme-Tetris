@@ -4,7 +4,8 @@ const context = canvas.getContext("2d");
 context.scale(20, 20);
 
 function collide(arena, player) {
-  const [m, o] = [player.matrix, player.pos];
+  const m = player.matrix;
+  const o = player.pos;
   for (y = 0; y < m.length; y++) {
     for (x = 0; x < m[y].length; x++) {
       if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
@@ -34,7 +35,7 @@ function createPiece(type) {
   if (type == "T") {
     return [[0, 1, 0], [1, 1, 1], [0, 0, 0]];
   } else if (type == "O") {
-    return [[2, 2], [2, 2]];
+    return [[0, 0, 0], [0, 2, 2], [0, 2, 2]];
   } else if (type == "L") {
     return [[0, 3, 0], [0, 3, 0], [0, 3, 3]];
   } else if (type == "J") {
@@ -63,8 +64,9 @@ function updateScore(score) {
 function draw() {
   context.fillStyle = "#999999";
   context.fillRect(0, 0, canvas.width, canvas.height);
-  drawMatrix(arena, { x: 0, y: 0 });
-  drawMatrix(player.matrix, player.pos);
+  drawMatrix(arena, 0, 0);
+  drawMatrixShadow(player.matrix, player.pos.x, shadowPlayer.pos.y);
+  drawMatrix(player.matrix, player.pos.x, player.pos.y);
 }
 
 function merge(arena, player) {
@@ -87,8 +89,7 @@ function playerDrop() {
     merge(arena, player);
     playerReset();
     if (collide(arena, player)) {
-      arena.forEach(row => row.fill(0));
-      updateScore(0);
+      resetArena();
     }
   }
 }
@@ -100,6 +101,14 @@ function playerDropAllTheWay() {
   player.pos.y--;
   merge(arena, player);
   playerReset();
+  if (collide(arena, player)) {
+    resetArena();
+  }
+}
+
+function resetArena() {
+  arena.forEach(row => row.fill(0));
+  updateScore(0);
 }
 
 function playerMove(direction) {
@@ -132,15 +141,17 @@ function rotate(matrix) {
     }
   }
 }
+
 let pieces = "TOLJISZ";
+
 function playerReset() {
   player.matrix = createPiece(pieces[Math.floor(Math.random() * 7)]);
   player.pos.y = 0;
-  player.pos.x = 5;
+  player.pos.x = 4;
 }
 
 let dropCounter = 0;
-let dropInterval = 500;
+let dropInterval = 100000;
 let lastTime = 0;
 
 function update(time = 0) {
@@ -153,8 +164,11 @@ function update(time = 0) {
   }
 
   draw();
+  updateShadowPlayerOffset();
   requestAnimationFrame(update);
 }
+
+let value = null;
 
 const colors = [
   null,
@@ -167,24 +181,47 @@ const colors = [
   "#3877FF"
 ];
 
-function drawMatrix(matrix, offset) {
+function drawMatrix(matrix, offsetX, offsetY) {
   matrix.forEach((row, y) => {
     row.forEach((value, x) => {
       if (value !== 0) {
         context.fillStyle = colors[value];
-        context.fillRect(x + offset.x, y + offset.y, 1, 1);
+        context.fillRect(x + offsetX, y + offsetY, 1, 1);
       }
     });
   });
+}
+function drawMatrixShadow(matrix, offsetX, offsetY) {
+  matrix.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value !== 0) {
+        context.fillStyle = "grey";
+        context.fillRect(x + offsetX, y + offsetY, 1, 1);
+      }
+    });
+  });
+}
+
+function updateShadowPlayerOffset() {
+  shadowPlayer = Object.assign({
+    matrix: player.matrix,
+    pos: { x: player.pos.x, y: player.pos.y }
+  });
+  while (!collide(arena, shadowPlayer)) {
+    shadowPlayer.pos.y++;
+  }
+  shadowPlayer.pos.y--;
 }
 
 const arena = createMatrix(12, 20);
 
 const player = {
   matrix: createPiece(pieces[Math.floor(Math.random() * 7)]),
-  pos: { x: 5, y: 0 },
+  pos: { x: 4, y: 0 },
   score: 0
 };
+
+let shadowPlayer = Object.assign(player);
 
 document.addEventListener("keydown", e => {
   if (e.keyCode === 37) {
