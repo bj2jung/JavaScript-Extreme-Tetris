@@ -4,8 +4,7 @@ const context = canvas.getContext("2d");
 context.scale(20, 20);
 
 function collide(arena, player) {
-  const m = player.matrix;
-  const o = player.pos;
+  const [m, o] = [player.matrix, player.pos];
   for (y = 0; y < m.length; y++) {
     for (x = 0; x < m[y].length; x++) {
       if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
@@ -16,26 +15,45 @@ function collide(arena, player) {
   return false;
 }
 
+let comboBonus = 0;
+let comboCount = 0;
+
 function arenaSweep() {
+  let checkCombo = false;
+  let multipleLineBonus = 0;
   outer: for (y = arena.length - 1; y >= 0; y--) {
     for (x = 0; x < arena[y].length; x++) {
       if (arena[y][x] === 0) {
         continue outer;
       }
     }
-
     arena.unshift(arena.splice(y, 1)[0].fill(0));
     y++;
+    multipleLineBonus += 10;
     player.score += 10;
-    updateScore(player.score);
+    checkCombo = true;
   }
+
+  if (checkCombo) {
+    comboCount += 1;
+    comboBonus = comboCount * 10;
+    if (comboCount > 0) {
+      comboBonus -= 10;
+    }
+  } else {
+    comboCount = 0;
+    comboBonus = 0;
+  }
+
+  multipleLineBonus === 0 ? 0 : (multipleLineBonus -= 10);
+  updateScore(player.score + comboBonus + multipleLineBonus);
 }
 
 function createPiece(type) {
   if (type == "T") {
     return [[0, 1, 0], [1, 1, 1], [0, 0, 0]];
   } else if (type == "O") {
-    return [[0, 0, 0], [0, 2, 2], [0, 2, 2]];
+    return [[2, 2], [2, 2]];
   } else if (type == "L") {
     return [[0, 3, 0], [0, 3, 0], [0, 3, 3]];
   } else if (type == "J") {
@@ -59,6 +77,7 @@ function createMatrix(w, h) {
 
 function updateScore(score) {
   document.getElementById("score").innerText = "Score: " + score;
+  player.score = score;
 }
 
 function draw() {
@@ -151,7 +170,7 @@ function playerReset() {
 }
 
 let dropCounter = 0;
-let dropInterval = 100000;
+let dropInterval = 50000;
 let lastTime = 0;
 
 function update(time = 0) {
@@ -213,7 +232,7 @@ function updateShadowPlayerOffset() {
   shadowPlayer.pos.y--;
 }
 
-const arena = createMatrix(12, 20);
+const arena = createMatrix(12, 25);
 
 const player = {
   matrix: createPiece(pieces[Math.floor(Math.random() * 7)]),
