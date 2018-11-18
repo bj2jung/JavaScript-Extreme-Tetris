@@ -44,7 +44,6 @@ function arenaSweep() {
     comboCount = 0;
     comboBonus = 0;
   }
-
   multipleLineBonus === 0 ? 0 : (multipleLineBonus -= 10);
   updateScore(player.score + comboBonus + multipleLineBonus);
 }
@@ -78,6 +77,10 @@ function createMatrix(w, h) {
 function updateScore(score) {
   document.getElementById("score").innerText = "Score: " + score;
   player.score = score;
+}
+
+function updateSpeed(speed) {
+  document.getElementById("speed").innerText = "Speed: " + speed;
 }
 
 function draw() {
@@ -169,17 +172,44 @@ function playerReset() {
   player.pos.x = 4;
 }
 
+function reduceDropInterval() {
+  dropSpeedCounter = 0;
+  if (dropInterval >= 200) {
+    dropInterval -= 50;
+  } else if (dropInterval >= 100) {
+    dropInterval -= 30;
+  } else if (dropInterval >= 50) {
+    dropInterval -= 15;
+  } else if (dropInterval >= 35) {
+    dropInterval -= 8;
+  }
+  updateSpeed(dropInterval);
+}
+
 let dropCounter = 0;
-let dropInterval = 50000;
-let lastTime = 0;
+let lastTimeForDrop = 0;
+let dropInterval = 350;
+let dropSpeedCounter = 0;
+let lastTimeForDropSpeed = 0;
+let dropSpeedIncreaseInterval = 5000;
 
 function update(time = 0) {
-  const deltaTime = time - lastTime;
-  lastTime = time;
-  dropCounter += deltaTime;
+  const deltaTimeForDrop = time - lastTimeForDrop;
+  lastTimeForDrop = time;
+  dropCounter += deltaTimeForDrop;
 
   if (dropCounter > dropInterval) {
     playerDrop();
+  }
+
+  const deltaTimeForDropSpeed = time - lastTimeForDropSpeed;
+  lastTimeForDropSpeed = time;
+  dropSpeedCounter += deltaTimeForDropSpeed;
+
+  // console.log(dropSpeedCounter);
+
+  if (dropSpeedCounter > dropSpeedIncreaseInterval) {
+    reduceDropInterval();
   }
 
   draw();
