@@ -31,6 +31,7 @@ function arenaSweep() {
     y++;
     multipleLineBonus += 10;
     player.score += 10;
+    dropInterval += 10;
     checkCombo = true;
   }
 
@@ -46,6 +47,12 @@ function arenaSweep() {
   }
   multipleLineBonus === 0 ? 0 : (multipleLineBonus -= 10);
   updateScore(player.score + comboBonus + multipleLineBonus);
+  updateSpeed(dropInterval);
+
+  comboBonus || multipleLineBonus
+    ? addBonusAnimation("bonusPointsPopup", comboBonus + multipleLineBonus)
+    : null;
+  checkCombo ? addBonusAnimation("decreasedSpeedPopup") : null;
 }
 
 function createPiece(type) {
@@ -79,8 +86,27 @@ function updateScore(score) {
   player.score = score;
 }
 
+function updateBonusPointsText(points, elementToAnimate) {
+  elementToAnimate.innerText = "Bonus +" + points;
+}
+
 function updateSpeed(speed) {
   document.getElementById("speed").innerText = "Speed: " + speed;
+}
+
+function addBonusAnimation(element, points) {
+  let elementToAnimate = document.getElementById(element);
+  elementToAnimate.classList.remove("activateAnimation");
+  void elementToAnimate.offsetWidth;
+
+  element == "bonusPointsPopup"
+    ? updateBonusPointsText(points, elementToAnimate)
+    : null;
+
+  elementToAnimate.classList.add("activateAnimation");
+  setTimeout(function() {
+    elementToAnimate.classList.remove("activateAnimation");
+  }, 1500);
 }
 
 function draw() {
@@ -175,23 +201,25 @@ function playerReset() {
 function reduceDropInterval() {
   dropSpeedCounter = 0;
   if (dropInterval >= 200) {
-    dropInterval -= 50;
-  } else if (dropInterval >= 100) {
     dropInterval -= 30;
-  } else if (dropInterval >= 50) {
+  } else if (dropInterval >= 100) {
     dropInterval -= 15;
+  } else if (dropInterval >= 50) {
+    dropInterval -= 5;
   } else if (dropInterval >= 35) {
-    dropInterval -= 8;
+    dropInterval -= 2.5;
   }
   updateSpeed(dropInterval);
 }
 
 let dropCounter = 0;
 let lastTimeForDrop = 0;
-let dropInterval = 350;
+// let dropInterval = 350;
+let dropInterval = 35000;
 let dropSpeedCounter = 0;
 let lastTimeForDropSpeed = 0;
-let dropSpeedIncreaseInterval = 5000;
+// let dropSpeedIncreaseInterval = 5000;
+let dropSpeedIncreaseInterval = 500000;
 
 function update(time = 0) {
   const deltaTimeForDrop = time - lastTimeForDrop;
@@ -205,8 +233,6 @@ function update(time = 0) {
   const deltaTimeForDropSpeed = time - lastTimeForDropSpeed;
   lastTimeForDropSpeed = time;
   dropSpeedCounter += deltaTimeForDropSpeed;
-
-  // console.log(dropSpeedCounter);
 
   if (dropSpeedCounter > dropSpeedIncreaseInterval) {
     reduceDropInterval();

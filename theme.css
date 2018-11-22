@@ -8,5 +8,44 @@ body {
 
 canvas {
   border: solid 0.15em white;
-  height: 80vh;
+  height: 70vh;
+}
+
+#score {
+  padding-top: 10px;
+}
+
+#speed {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+#bonusPointsPopup {
+  font-size: 20px;
+  background: black;
+  color: black;
+}
+
+#decreasedSpeedPopup {
+  font-size: 20px;
+  background: black;
+  color: black;
+}
+
+.activateAnimation {
+  animation-name: myanimation;
+  animation-duration: 1.5s;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-out;
+}
+
+@keyframes myanimation {
+  0% {
+    color: red;
+    left: 30px;
+  }
+  100% {
+    color: black;
+    left: 500px;
+  }
 }
